@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coro Misioneros de la Fe - Repertorio y Esquemas</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- PDF.js para renderizar PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- Mammoth.js para leer y mostrar documentos de Word (.docx) directamente -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://unpkg.com/docx-preview@0.3.3/dist/docx-preview.min.js"></script>
+    <!-- Librería para Descarga de Imagen -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body.site-locked > *:not(#sitePasswordGate) { display: none !important; }
+        #sitePasswordGate { min-height: 100vh; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .pdf-render-container {
+            color: #0f172a;
+            background: #ffffff;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 2px solid #0284c7;
+            box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.1);
+            overflow-x: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .pdf-render-container canvas, 
+        .pdf-render-container img {
+            max-width: 100% !important;
+            height: auto !important;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 1rem;
+        }
+
+        .word-original-view {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+        }
+        .word-original-view .docx-wrapper {
+            width: 100%;
+            background: #f1f5f9;
+            padding: 18px 0;
+        }
+        .word-original-view .docx {
+            margin: 0 auto;
+        }
+        .word-original-view .docx-page {
+            margin: 0 auto 18px auto !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,.12);
+            background: white;
+        }
+        .doc-text-content {
+            width: 100%;
+            text-align: left;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #1e293b;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .header-gradient {
+            background: linear-gradient(135deg, #0b192c 0%, #1e293b 50%, #083344 100%);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .fullscreen-viewer {
+            position: fixed !important;
+            inset: 0 !important;
+            z-index: 50 !important;
+            max-width: 100% !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            border-radius: 0 !important;
+            overflow-y: auto !important;
+            background-color: #ffffff !important;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printableSongContent, #printableSongContent * {
+                visibility: visible;
+            }
+            #printableSongContent {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+        }
+    
+        .word-original-view {
+            width: 100%;
+            overflow-x: auto;
+            background: #e5e7eb;
+            padding: 18px;
+            border-radius: 12px;
+        }
+        .word-original-view .docx-wrapper {
+            background: transparent !important;
+            padding: 0 !important;
+        }
+        .word-original-view .docx {
+            box-shadow: 0 2px 8px rgba(0,0,0,.12);
+            margin: 0 auto 18px !important;
+        }
+        /* Ajuste para aprovechar el ancho de la computadora y evitar texto cortado. */
+        #printableSongContent, #fileViewerTarget { width: 100%; min-width: 0; }
+        #fileViewerTarget canvas, #fileViewerTarget img { max-width: 100%; height: auto; }
+        .doc-text-content { width: 100%; max-width: 100%; overflow-wrap: anywhere; white-space: normal; }
+        .docx-wrapper, .docx { max-width: 100% !important; }
+        .docx-page { max-width: 100% !important; overflow-x: auto; }
+</style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-100 site-locked" onload="initSiteAccess()">
+
+    <!-- Pantalla de acceso al sitio -->
+    <div id="sitePasswordGate" class="min-h-screen flex items-center justify-center bg-slate-900 p-4">
+        <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-7 sm:p-9 text-center border border-slate-200">
+            <div class="w-20 h-20 mx-auto mb-5 rounded-full bg-slate-900 border-4 border-cyan-400 flex items-center justify-center shadow-lg overflow-hidden">
+                <img src="logo.png" onerror="this.onerror=null; this.src='logo.jpg';" alt="Coro Misioneros de la Fe" class="w-full h-full object-contain rounded-full">
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">CORO MISIONEROS DE LA FE</h1>
+            <p class="text-slate-500 mt-2 mb-7">Ingresa la contraseña para acceder al cancionero.</p>
+            <form onsubmit="event.preventDefault(); unlockSite();" class="space-y-4">
+                <input type="password" id="sitePasswordInput" autocomplete="current-password" placeholder="Contraseña" class="w-full bg-slate-50 text-slate-900 text-center rounded-xl py-3.5 px-4 border border-slate-300 focus:outline-none focus:border-cyan-500 text-lg font-bold">
+                <p id="sitePasswordError" class="text-red-500 text-sm hidden font-semibold">Contraseña incorrecta.</p>
+                <button type="submit" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-3.5 rounded-xl transition shadow-md">
+                    Entrar al cancionero
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Encabezado / Barra Superior -->
+    <header class="header-gradient text-white border-b border-cyan-500/30 sticky top-0 z-40 shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="relative group">
+                    <div class="absolute -inset-0.5 bg-gradient-to-r from-cyan-400 to-amber-400 rounded-full blur opacity-50 group-hover:opacity-75 transition"></div>
+                    <div class="relative bg-black p-1 rounded-full border border-cyan-300 shadow-md flex items-center justify-center overflow-hidden h-14 w-14 sm:h-16 sm:w-16">
+                        <img src="logo.png" onerror="this.onerror=null; this.src='logo.jpg';" alt="Coro Misioneros de la Fe" class="h-full w-full object-contain rounded-full">
+                    </div>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-2xl font-extrabold bg-gradient-to-r from-cyan-300 via-sky-200 to-amber-300 bg-clip-text text-transparent tracking-wide">
+                        CORO MISIONEROS DE LA FE
+                    </h1>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                        <p class="text-[11px] text-amber-300 font-bold tracking-widest uppercase">Cancionero y Esquemas Litúrgicos</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <button onclick="openAdminModalForCreate()" class="flex items-center space-x-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs sm:text-sm px-4 py-2.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-cyan-500/25 active:scale-95">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Agregar Canto</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-y-6 lg:gap-x-10 items-start">
+
+        <!-- MENÚ LATERAL IZQUIERDO -->
+        <aside class="lg:col-span-4 space-y-5">
+            
+            <!-- 1. Tiempo Litúrgico -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                <h2 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-4 h-4 text-amber-500"></i> Tiempo Litúrgico
+                </h2>
+                <select id="seasonFilter" onchange="filterSongs()" class="w-full bg-slate-50 text-slate-800 text-sm font-semibold rounded-xl px-3 py-2.5 border border-slate-200 focus:outline-none focus:border-cyan-500">
+                    <option value="TODOS">Todos los Tiempos</option>
+                    <option value="TIEMPO ORDINARIO">Tiempo Ordinario</option>
+                    <option value="CUARESMA">Cuaresma</option>
+                    <option value="ADVIENTO">Adviento</option>
+                    <option value="PASCUA">Pascua</option>
+                    <option value="NAVIDAD">Navidad</option>
+                    <option value="EVENTOS">Eventos</option>
+                    <option value="ADORACION">Adoración</option>
+                </select>
+            </div>
+
+            <!-- 2. Buscar Cantos -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+                <label class="block text-xs font-extrabold text-cyan-800 uppercase mb-2 tracking-wider">Buscar Cantos</label>
+                <div class="relative">
+                    <input type="text" id="searchInput" oninput="filterSongs()" placeholder="Por título..." class="w-full bg-slate-50 text-slate-900 text-sm rounded-xl pl-10 pr-4 py-2.5 border border-slate-200 focus:outline-none focus:border-cyan-500">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+                </div>
+            </div>
+
+            <!-- 3. Repertorio -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm transition-all duration-300">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Repertorio</h2>
+                        <span id="songCount" class="text-xs bg-cyan-100 text-cyan-800 font-extrabold px-2.5 py-0.5 rounded-full">0</span>
+                    </div>
+                    <button onclick="toggleRepertoireExpand()" id="repertoireExpandBtn" title="Maximizar/Minimizar Lista" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition">
+                        <i data-lucide="maximize-2" id="repertoireExpandIcon" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div id="songsList" class="space-y-2 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar transition-all duration-300"></div>
+            </div>
+
+            <!-- 4. Esquema Semanal -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-md space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+                    <div class="flex items-center gap-2.5">
+                        <div class="p-2 bg-cyan-100 text-cyan-700 rounded-xl border border-cyan-200">
+                            <i data-lucide="list-music" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">Esquema Semanal</h2>
+                            <p class="text-xs text-slate-500 font-semibold">Programación de Misa</p>
+                        </div>
+                    </div>
+                    <button onclick="clearScheme()" class="text-xs font-bold bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg transition">
+                        Limpiar
+                    </button>
+                </div>
+                
+                <div id="weeklySchemeContainer" class="space-y-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar"></div>
+            </div>
+
+        </aside>
+
+        <!-- Visor del Canto -->
+        <section class="lg:col-span-8 w-full lg:pl-2">
+            <div id="songViewer" class="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-8 shadow-md min-h-[520px] transition-all duration-300">
+                <div class="text-center text-slate-400 py-28">
+                    <div class="w-20 h-20 bg-cyan-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-cyan-100">
+                        <i data-lucide="music" class="w-10 h-10 text-cyan-500"></i>
+                    </div>
+                    <p class="text-lg font-bold text-slate-700">Selecciona un canto del panel izquierdo</p>
+                    <p class="text-xs text-slate-400 mt-1">Podrás visualizar el documento original y utilizar el reproductor de audio.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Autorización de Pisadas -->
+    <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 sm:p-8 text-center shadow-2xl relative">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <div class="w-16 h-16 bg-cyan-100 text-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-cyan-200">
+                <i data-lucide="lock" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-2">Acceso a Diagramas de Pisadas</h3>
+            <p class="text-xs sm:text-sm text-slate-600 mb-6">Ingresa la clave de autorización del director para desbloquear el documento con pisadas.</p>
+
+            <div class="space-y-4">
+                <div>
+                    <input type="password" id="accessCodeInput" placeholder="Clave de acceso..." class="w-full bg-slate-50 text-slate-900 text-center rounded-xl py-3 px-4 border border-slate-300 focus:outline-none focus:border-cyan-500 text-lg font-bold">
+                    <p id="authError" class="text-red-500 text-xs mt-1.5 hidden font-semibold">Código incorrecto. Solicítalo al director.</p>
+                </div>
+                <button onclick="verifyCode()" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-3 rounded-xl transition shadow-md">
+                    Desbloquear Diagramas
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Registrar / Subir Canto -->
+    <div id="adminModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white border border-slate-200 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="toggleAdminModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <h3 id="modalTitle" class="text-xl font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+                <i data-lucide="plus-circle" class="w-5 h-5 text-cyan-600"></i> Registrar Nuevo Canto
+            </h3>
+            <form onsubmit="saveSong(event)" class="space-y-4">
+                <input type="hidden" id="editingSongId" value="">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Título del Canto</label>
+                        <input type="text" id="newTitle" required class="w-full bg-slate-50 text-slate-900 rounded-xl p-2.5 border border-slate-300 focus:border-cyan-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Momento Litúrgico</label>
+                        <select id="newMomento" class="w-full bg-slate-50 text-slate-900 rounded-xl p-2.5 border border-slate-300 focus:border-cyan-500">
+                            <option value="Entrada">Entrada</option>
+                            <option value="Piedad">Piedad</option>
+                            <option value="Gloria">Gloria</option>
+                            <option value="Aleluya">Aleluya</option>
+                            <option value="Ofertorio">Ofertorio</option>
+                            <option value="Santo">Santo</option>
+                            <option value="Padre Nuestro">Padre Nuestro</option>
+                            <option value="Cordero">Cordero</option>
+                            <option value="Comunión">Comunión</option>
+                            <option value="Adoración">Adoración</option>
+                            <option value="Salida">Salida</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tiempo Litúrgico</label>
+                        <select id="newTiempo" class="w-full bg-slate-50 text-slate-900 rounded-xl p-2.5 border border-slate-300 focus:border-cyan-500">
+                            <option value="TIEMPO ORDINARIO">Tiempo Ordinario</option>
+                            <option value="CUARESMA">Cuaresma</option>
+                            <option value="ADVIENTO">Adviento</option>
+                            <option value="PASCUA">Pascua</option>
+                            <option value="NAVIDAD">Navidad</option>
+                            <option value="EVENTOS">Eventos</option>
+                            <option value="ADORACION">Adoración</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Archivo Principal -->
+                <div class="bg-cyan-50 p-4 rounded-2xl border border-cyan-200 space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-800 mb-1">📄 Archivo Principal del Canto</label>
+                            <input type="file" id="newFile" onchange="processFile(this, 'main')" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-cyan-600 file:text-white hover:file:bg-cyan-700">
+                            <span id="mainFileNotice" class="text-[10px] text-slate-500 hidden mt-1 block">Deja en blanco para conservar el archivo actual.</span>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-800 mb-1">🎵 Archivo de Audio (Opcional)</label>
+                            <input type="file" id="newAudio" accept="audio/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-white hover:file:bg-amber-600">
+                            <span id="audioFileNotice" class="text-[10px] text-slate-500 hidden mt-1 block">Deja en blanco para conservar el audio actual.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documento Protegido con Pisadas -->
+                <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 space-y-2">
+                    <label class="block text-xs font-extrabold text-amber-900 mb-1">🔒 Archivo con Pisadas (Opcional - Protegido)</label>
+                    <input type="file" id="newPisadasFile" onchange="processFile(this, 'pisadas')" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-600 file:text-white hover:file:bg-amber-700">
+                    <span id="pisadasFileNotice" class="text-[10px] text-amber-800 hidden block">Deja en blanco para conservar el archivo de pisadas actual.</span>
+                </div>
+
+                <div id="fileLoader" class="hidden text-xs font-bold text-cyan-800 flex items-center gap-2">
+                    <span class="animate-spin inline-block w-4 h-4 border-2 border-cyan-600 border-t-transparent rounded-full"></span>
+                    <span>Procesando archivo...</span>
+                </div>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-3 rounded-xl transition shadow-md">
+                    Guardar Canto
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Lógico -->
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // Contraseña general para entrar al sitio. Cámbiala por la que quieras.
+        const SITE_PASSWORD = "CRISTOREY";
+        // Contraseña independiente para mostrar las pisadas.
+        const SECRET_CODE = "MISIONEROS";
+
+        function initSiteAccess() {
+            const unlocked = sessionStorage.getItem('misioneros_site_unlocked') === '1';
+            if (unlocked) {
+                unlockSite(false);
+            } else {
+                document.body.classList.add('site-locked');
+                setTimeout(() => document.getElementById('sitePasswordInput')?.focus(), 100);
+            }
+        }
+
+        function unlockSite(saveSession = true) {
+            const input = document.getElementById('sitePasswordInput');
+            const error = document.getElementById('sitePasswordError');
+            if (saveSession && (!input || input.value !== SITE_PASSWORD)) {
+                error?.classList.remove('hidden');
+                if (input) { input.value = ''; input.focus(); }
+                return false;
+            }
+            if (saveSession) sessionStorage.setItem('misioneros_site_unlocked', '1');
+            document.body.classList.remove('site-locked');
+            document.getElementById('sitePasswordGate')?.remove();
+            init();
+            return true;
+        }
+        let isAuthorized = false;
+        let currentSong = null;
+        let currentTransposeSteps = 0;
+        let isRepertoireExpanded = false;
+        let isViewerFullscreen = false;
+        let processedContent = { pdfData: null, photo: null, rawData: null, arrayBuffer: null, fileName: null, fileType: null };
+        let processedPisadasContent = { pdfData: null, photo: null, rawData: null, arrayBuffer: null, fileName: null, fileType: null };
+
+        const liturgicalMoments = [
+            { name: "Entrada", icon: "door-open" },
+            { name: "Piedad", icon: "heart-handshake" },
+            { name: "Gloria", icon: "sparkles" },
+            { name: "Aleluya", icon: "book-open" },
+            { name: "Ofertorio", icon: "gift" },
+            { name: "Santo", icon: "flame" },
+            { name: "Padre Nuestro", icon: "hands-together" },
+            { name: "Cordero", icon: "sun" },
+            { name: "Comunión", icon: "utensils" },
+            { name: "Adoración", icon: "star" },
+            { name: "Salida", icon: "footprints" }
+        ];
+
+        let songs = [];
+        let weeklyScheme = JSON.parse(localStorage.getItem('misioneros_scheme')) || {};
+
+        // Los cantos y sus archivos se guardan en IndexedDB, que no tiene el límite
+        // pequeño de localStorage. El navegador sigue aplicando su cuota de disco.
+        const SONG_DB_NAME = 'misioneros_songbook_db';
+        const SONG_DB_VERSION = 1;
+        const SONG_STORE = 'songs';
+        let songDB = null;
+
+        function openSongDB() {
+            return new Promise((resolve, reject) => {
+                if (songDB) return resolve(songDB);
+                const request = indexedDB.open(SONG_DB_NAME, SONG_DB_VERSION);
+                request.onupgradeneeded = () => {
+                    const db = request.result;
+                    if (!db.objectStoreNames.contains(SONG_STORE)) db.createObjectStore(SONG_STORE, { keyPath: 'id' });
+                };
+                request.onsuccess = () => { songDB = request.result; resolve(songDB); };
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function getAllSongsFromDB() {
+            const db = await openSongDB();
+            return new Promise((resolve, reject) => {
+                const req = db.transaction(SONG_STORE, 'readonly').objectStore(SONG_STORE).getAll();
+                req.onsuccess = () => resolve(req.result || []);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function saveSongsToDB(list) {
+            const db = await openSongDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(SONG_STORE, 'readwrite');
+                const store = tx.objectStore(SONG_STORE);
+                list.forEach(song => store.put(song));
+                tx.oncomplete = resolve;
+                tx.onerror = () => reject(tx.error);
+                tx.onabort = () => reject(tx.error || new Error('No se pudo guardar.'));
+            });
+        }
+
+        async function deleteSongFromDB(id) {
+            const db = await openSongDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(SONG_STORE, 'readwrite');
+                tx.objectStore(SONG_STORE).delete(id);
+                tx.oncomplete = resolve;
+                tx.onerror = () => reject(tx.error);
+            });
+        }
+
+        async function init() {
+            try {
+                songs = await getAllSongsFromDB();
+                if (!songs.length) {
+                    try {
+                        const legacy = JSON.parse(localStorage.getItem('misioneros_songs') || '[]');
+                        songs = Array.isArray(legacy) ? legacy : [];
+                        if (songs.length) {
+                            await saveSongsToDB(songs);
+                            localStorage.removeItem('misioneros_songs');
+                        }
+                    } catch (migrationError) { console.warn('Migración no disponible:', migrationError); }
+                }
+            } catch (dbError) {
+                console.warn('IndexedDB no disponible; usando almacenamiento anterior.', dbError);
+                try { songs = JSON.parse(localStorage.getItem('misioneros_songs') || '[]'); } catch (_) { songs = []; }
+            }
+            lucide.createIcons();
+            filterSongs();
+            renderWeeklySchemeUI();
+            if (currentSong) renderSongViewer();
+        }
+
+        function toggleAdminModal() {
+            document.getElementById('adminModal').classList.toggle('hidden');
+        }
+
+        function openAdminModalForCreate() {
+            document.getElementById('editingSongId').value = "";
+            document.getElementById('modalTitle').innerHTML = `<i data-lucide="plus-circle" class="w-5 h-5 text-cyan-600"></i> Registrar Nuevo Canto`;
+            document.getElementById('newTitle').value = "";
+            document.getElementById('newMomento').value = "Entrada";
+            document.getElementById('newTiempo').value = "TIEMPO ORDINARIO";
+            document.getElementById('newFile').required = true;
+            
+            document.getElementById('mainFileNotice').classList.add('hidden');
+            document.getElementById('audioFileNotice').classList.add('hidden');
+            document.getElementById('pisadasFileNotice').classList.add('hidden');
+
+            processedContent = { pdfData: null, photo: null, rawData: null, arrayBuffer: null, fileName: null, fileType: null };
+            processedPisadasContent = { pdfData: null, photo: null, rawData: null, arrayBuffer: null, fileName: null, fileType: null };
+            
+            toggleAdminModal();
+            lucide.createIcons();
+        }
+
+        function openAuthModal() {
+            document.getElementById('authModal').classList.remove('hidden');
+            document.getElementById('authError').classList.add('hidden');
+            document.getElementById('accessCodeInput').value = '';
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+        }
+
+        function verifyCode() {
+            const input = document.getElementById('accessCodeInput').value;
+            if (input === SECRET_CODE) {
+                isAuthorized = true;
+                closeAuthModal();
+                renderSongViewer();
+            } else {
+                document.getElementById('authError').classList.remove('hidden');
+            }
+        }
+
+        function lockPisadas() {
+            isAuthorized = false;
+            renderSongViewer();
+        }
+
+        function shiftKey(steps) {
+            if (!currentSong) return;
+
+            // El cambio de tono se guarda por canto para que no se pierda
+            // al volver a abrirlo o al cambiar entre los cantos.
+            currentTransposeSteps = Number(currentTransposeSteps || 0) + Number(steps || 0);
+
+            const idx = songs.findIndex(s => s.id === currentSong.id);
+            if (idx !== -1) {
+                songs[idx].transposeSteps = currentTransposeSteps;
+                currentSong = songs[idx];
+                saveSongsToDB(songs).catch(err => console.error('No se pudo guardar el canto:', err));
+            }
+
+            renderSongViewer();
+        }
+
+        // ============================================================
+        // CAMBIO DE TONO PARA CANTOS IMPORTADOS DESDE WORD
+        // ============================================================
+        const CHROMATIC_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const NOTE_ALIASES = {
+            'Cb': 'B', 'Db': 'C#', 'Eb': 'D#', 'Fb': 'E',
+            'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#',
+            'B#': 'C', 'E#': 'F'
+        };
+
+        function normalizeNote(note) {
+            return NOTE_ALIASES[note] || note;
+        }
+
+        function transposeNote(note, steps) {
+            const normalized = normalizeNote(note);
+            const index = CHROMATIC_NOTES.indexOf(normalized);
+            if (index === -1) return note;
+
+            const newIndex = (index + steps) % 12;
+            const safeIndex = (newIndex + 12) % 12;
+            return CHROMATIC_NOTES[safeIndex];
+        }
+
+        function transposeChord(chord, steps) {
+            if (!chord || !steps) return chord;
+
+            // Soporta:
+            // C, Cm, C7, Cmaj7, Cadd9, Csus4, Cdim, Caug,
+            // C/G, F#m7, Bb, A7sus4, etc.
+            const match = chord.match(/^([A-G](?:#|b)?)(.*)$/);
+            if (!match) return chord;
+
+            const root = match[1];
+            const suffix = match[2];
+
+            // Evita modificar palabras normales de la letra.
+            const validSuffix = /^(?:m|maj|M|dim|aug|sus|add|alt|omit|no|[0-9]|[0-9]+|°|ø|[#b]|\/[A-G](?:#|b)?|m[0-9]+|maj[0-9]+|sus[0-9]+|add[0-9]+|dim[0-9]+|aug[0-9]+)*$/;
+            if (!validSuffix.test(suffix)) return chord;
+
+            let newChord = transposeNote(root, steps) + suffix;
+
+            // También transpone el bajo en acordes como G/B o C#/G#.
+            newChord = newChord.replace(
+                /\/([A-G](?:#|b)?)/,
+                (_, bass) => '/' + transposeNote(bass, steps)
+            );
+
+            return newChord;
+        }
+
+        function isChordToken(token) {
+            if (!token) return false;
+            const clean = token.replace(/^[([{|]+|[\])},.;:!?]+$/g, '');
+            if (!clean) return false;
+
+            // Las notas individuales A-G solo se consideran acordes
+            // cuando están en una línea predominantemente de acordes.
+            return /^[A-G](?:#|b)?(?:m|maj|M|dim|aug|sus|add|alt|omit|no|[0-9]|°|ø)*(?:\/[A-G](?:#|b)?)?$/.test(clean);
+        }
+
+        function transposeWordHtml(root, steps) {
+            if (!root || !steps) return;
+
+            // 1. Acordes entre corchetes: [G], [Am], [C/G], etc.
+            // Es una forma muy común de guardar acordes en Word.
+            const walker = document.createTreeWalker(
+                root,
+                NodeFilter.SHOW_TEXT,
+                {
+                    acceptNode(node) {
+                        if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+                        const parent = node.parentElement;
+                        if (!parent) return NodeFilter.FILTER_ACCEPT;
+                        const tag = parent.tagName.toLowerCase();
+                        if (['script', 'style', 'svg'].includes(tag)) return NodeFilter.FILTER_REJECT;
+                        return NodeFilter.FILTER_ACCEPT;
+                    }
+                }
+            );
+
+            const nodes = [];
+            let node;
+            while ((node = walker.nextNode())) nodes.push(node);
+
+            nodes.forEach(textNode => {
+                let text = textNode.nodeValue;
+
+                text = text.replace(
+                    /\[([A-G](?:#|b)?(?:m|maj|M|dim|aug|sus|add|alt|omit|no|[0-9]|°|ø)*(?:\/[A-G](?:#|b)?)?)\]/g,
+                    (_, chord) => '[' + transposeChord(chord, steps) + ']'
+                );
+
+                // 2. Detecta líneas de acordes. Esto evita convertir la letra
+                // "A..." en un acorde cuando A es una palabra normal.
+                const lines = text.split('\n');
+                const transformed = lines.map(line => {
+                    const tokens = line.trim().split(/\s+/).filter(Boolean);
+                    if (tokens.length < 1) return line;
+
+                    const chordCount = tokens.filter(isChordToken).length;
+                    const looksLikeChordLine =
+                        chordCount >= 2 ||
+                        (chordCount === 1 && tokens.length === 1);
+
+                    if (!looksLikeChordLine) return line;
+
+                    return line.replace(
+                        /(^|[\s([{])([A-G](?:#|b)?(?:m|maj|M|dim|aug|sus|add|alt|omit|no|[0-9]|°|ø)*(?:\/[A-G](?:#|b)?)?)(?=$|[\s)\]},.;:!?])/g,
+                        (full, prefix, chord) => prefix + transposeChord(chord, steps)
+                    );
+                });
+
+                textNode.nodeValue = transformed.join('\n');
+            });
+        }
+
+        function applyTransposeToWordContainer(div) {
+            const steps = Number(currentTransposeSteps || 0);
+            if (!div || !steps) return;
+
+            transposeWordHtml(div, steps);
+        }
+
+        function toggleRepertoireExpand() {
+            isRepertoireExpanded = !isRepertoireExpanded;
+            const container = document.getElementById('songsList');
+            const icon = document.getElementById('repertoireExpandIcon');
+            
+            if (isRepertoireExpanded) {
+                container.classList.remove('max-h-[250px]');
+                container.classList.add('max-h-[550px]');
+                icon.setAttribute('data-lucide', 'minimize-2');
+            } else {
+                container.classList.remove('max-h-[550px]');
+                container.classList.add('max-h-[250px]');
+                icon.setAttribute('data-lucide', 'maximize-2');
+            }
+            lucide.createIcons();
+        }
+
+        function toggleViewerFullscreen() {
+            isViewerFullscreen = !isViewerFullscreen;
+            const viewer = document.getElementById('songViewer');
+            if (isViewerFullscreen) {
+                viewer.classList.add('fullscreen-viewer');
+            } else {
+                viewer.classList.remove('fullscreen-viewer');
+            }
+            renderSongViewer();
+        }
+
+        function toggleDownloadDropdown() {
+            const menu = document.getElementById('downloadMenu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        function filterSongs() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const season = document.getElementById('seasonFilter').value;
+
+            const filtered = songs.filter(s => {
+                const matchQuery = s.title.toLowerCase().includes(query);
+                const matchSeason = season === "TODOS" || s.tiempo === season;
+                return matchQuery && matchSeason;
+            });
+
+            document.getElementById('songCount').innerText = filtered.length;
+            const container = document.getElementById('songsList');
+            container.innerHTML = '';
+
+            filtered.forEach(s => {
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-xl border transition flex justify-between items-center ${currentSong?.id === s.id ? 'border-cyan-500 bg-cyan-50/80 shadow-sm' : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100'}`;
+                card.innerHTML = `
+                    <div onclick="selectSong(${s.id})" class="cursor-pointer flex-1">
+                        <h4 class="text-sm font-bold text-slate-800">${s.title}</h4>
+                        <span class="text-[10px] px-2 py-0.5 rounded-md bg-cyan-100 text-cyan-800 font-bold">${s.momento}</span>
+                        <span class="text-[10px] text-slate-500 ml-1 font-medium">${s.tiempo}</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="deleteSong(event, ${s.id})" title="Eliminar Canto" class="text-red-400 hover:text-red-600 p-1 hover:bg-red-50 rounded-lg transition">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            lucide.createIcons();
+            renderWeeklySchemeUI();
+        }
+
+        function selectSong(id) {
+            currentSong = songs.find(s => s.id === id);
+            currentTransposeSteps = Number(currentSong?.transposeSteps || 0);
+            isAuthorized = false;
+            renderSongViewer();
+            filterSongs();
+        }
+
+        function deleteSong(event, id) {
+            event.stopPropagation();
+            if (confirm("¿Seguro que deseas eliminar este canto?")) {
+                songs = songs.filter(s => s.id !== id);
+                if (currentSong?.id === id) currentSong = null;
+                deleteSongFromDB(id).catch(err => console.error('No se pudo eliminar el canto:', err));
+                filterSongs();
+                renderSongViewer();
+            }
+        }
+
+        function renderSongViewer() {
+            const viewer = document.getElementById('songViewer');
+            if (!currentSong) {
+                viewer.innerHTML = `
+                    <div class="text-center text-slate-400 py-28">
+                        <div class="w-20 h-20 bg-cyan-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-cyan-100">
+                            <i data-lucide="music" class="w-10 h-10 text-cyan-500"></i>
+                        </div>
+                        <p class="text-lg font-bold text-slate-700">Selecciona un canto del panel izquierdo</p>
+                        <p class="text-xs text-slate-400 mt-1">Podrás visualizar el documento original y utilizar el reproductor de audio.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            const hasPisadas = Boolean(currentSong.pisadasPdfData || currentSong.pisadasPhoto || currentSong.pisadasRawData || currentSong.pisadasFileName);
+            const showPisadas = isAuthorized && hasPisadas;
+
+            // Sin pisadas se muestra el archivo normal; al desbloquearlas, el archivo con pisadas lo sustituye.
+            const activeFile = showPisadas
+                ? { pdfData: currentSong.pisadasPdfData, photo: currentSong.pisadasPhoto, rawData: currentSong.pisadasRawData, arrayBuffer: currentSong.pisadasArrayBuffer, fileName: currentSong.pisadasFileName, fileType: currentSong.pisadasFileType }
+                : { pdfData: currentSong.pdfData, photo: currentSong.photo, rawData: currentSong.rawData, arrayBuffer: currentSong.arrayBuffer, fileName: currentSong.fileName, fileType: currentSong.fileType };
+
+            viewer.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Cabecera e Información del Canto -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-xs bg-cyan-100 text-cyan-800 font-extrabold px-3 py-1 rounded-full">${currentSong.momento}</span>
+                                <span class="text-xs text-slate-500 font-bold tracking-wider uppercase">${currentSong.tiempo}</span>
+                            </div>
+                            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">${currentSong.title}</h2>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="printSong()" class="flex items-center gap-2 bg-slate-700 hover:bg-slate-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow">
+                                <i data-lucide="printer" class="w-4 h-4"></i>
+                                <span>Imprimir</span>
+                            </button>
+                            <button onclick="downloadOriginalFile()" class="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                <span>Descargar</span>
+                            </button>
+                            ${hasPisadas ? (isAuthorized ? `
+                                <button onclick="lockPisadas()" class="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow">
+                                    <i data-lucide="unlock" class="w-4 h-4"></i>
+                                    <span>Ocultar Pisadas</span>
+                                </button>
+                            ` : `
+                                <button onclick="openAuthModal()" class="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow">
+                                    <i data-lucide="lock" class="w-4 h-4"></i>
+                                    <span>Ver con Pisadas</span>
+                                </button>
+                            `) : ''}
+                        </div>
+
+                    </div>
+
+                    <!-- Audio Player Si Existe -->
+                    ${currentSong.audioData ? `
+                        <div class="bg-cyan-50/60 p-3.5 rounded-2xl border border-cyan-200 flex items-center gap-3">
+                            <i data-lucide="volume-2" class="w-5 h-5 text-cyan-700"></i>
+                            <audio controls class="w-full h-8">
+                                <source src="${currentSong.audioData}">
+                                Tu navegador no soporta el reproductor de audio.
+                            </audio>
+                        </div>
+                    ` : ''}
+
+                    <!-- Visor del Contenido Principal del Canto -->
+                    <div id="printableSongContent" class="pdf-render-container min-h-[400px]">
+                        <div class="mb-3 flex items-center justify-between gap-3">
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-700">Canto</h3>
+                            </div>
+                        </div>
+                        <div id="fileViewerTarget" class="w-full flex flex-col items-center justify-center">
+                            <span class="animate-spin inline-block w-8 h-8 border-4 border-cyan-600 border-t-transparent rounded-full my-12"></span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+            renderFileContent(activeFile, document.getElementById('fileViewerTarget'));
+        }
+
+        function renderFileContent(fileObj, targetElement = null, allowTranspose = true) {
+            const container = targetElement || document.getElementById('fileViewerTarget');
+            if (!container) return;
+            container.innerHTML = '';
+
+            // 1. Mostrar PDF
+            if (fileObj.pdfData) {
+                renderPDF(fileObj.pdfData, container);
+            } 
+            // 2. Mostrar Imagen
+            else if (fileObj.photo) {
+                const img = document.createElement('img');
+                img.src = fileObj.photo;
+                img.alt = currentSong.title;
+                img.className = "max-w-full rounded-lg shadow-md";
+                container.appendChild(img);
+            } 
+            // 3. Mostrar documento de Word conservando su apariencia original (.docx)
+            else if (fileObj.fileName && fileObj.fileName.toLowerCase().endsWith('.docx')) {
+                const renderWordOriginal = async (buffer) => {
+                    try {
+                        if (typeof docx === 'undefined' || typeof docx.renderAsync !== 'function') {
+                            throw new Error('No se pudo cargar el visor de Word.');
+                        }
+
+                        const wordWrap = document.createElement('div');
+                        wordWrap.className = 'word-original-view';
+                        container.appendChild(wordWrap);
+
+                        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+                        await docx.renderAsync(blob, wordWrap, null, {
+                            className: 'docx',
+                            inWrapper: true,
+                            ignoreWidth: false,
+                            ignoreHeight: false,
+                            breakPages: true,
+                            renderHeaders: true,
+                            renderFooters: true,
+                            renderFootnotes: true,
+                            renderEndnotes: true,
+                            experimental: true
+                        });
+                    } catch (err) {
+                        console.error('Error mostrando Word con visor original:', err);
+                        // Respaldo: si docx-preview no puede representar el archivo,
+                        // Mammoth intenta abrir el mismo .docx para no dejar el visor vacío.
+                        try {
+                            const result = await mammoth.convertToHtml({ arrayBuffer: buffer });
+                            container.innerHTML = '';
+                            const fallback = document.createElement('div');
+                            fallback.className = 'doc-text-content bg-white p-6 rounded-xl';
+                            fallback.innerHTML = result.value || '<p>No se encontró contenido en el documento.</p>';
+                            container.appendChild(fallback);
+                        } catch (fallbackErr) {
+                            console.error('Error mostrando Word con respaldo:', fallbackErr);
+                            container.innerHTML = `<div class="text-center text-red-500 text-xs font-bold py-8"><p>No se pudo visualizar el Word.</p><p class="text-slate-500 font-normal mt-1">Verifica que sea un archivo .docx válido y vuelve a subirlo.</p></div>`;
+                        }
+                    }
+                };
+
+                // IMPORTANTE: después de guardar en localStorage, ArrayBuffer ya no es confiable.
+                // El archivo original queda conservado como Data URL (rawData), así que usamos eso.
+                if (fileObj.rawData && fileObj.rawData.includes(',')) {
+                    try {
+                        const base64 = fileObj.rawData.split(',')[1];
+                        const binary = atob(base64);
+                        const bytes = new Uint8Array(binary.length);
+                        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                        renderWordOriginal(bytes.buffer);
+                    } catch (e) {
+                        console.error(e);
+                        container.innerHTML = `<p class="text-red-500 text-xs font-bold py-6">Error al abrir el documento de Word.</p>`;
+                    }
+                } else if (fileObj.arrayBuffer && fileObj.arrayBuffer.byteLength) {
+                    renderWordOriginal(fileObj.arrayBuffer);
+                } else {
+                    container.innerHTML = `<p class="text-slate-500 text-sm py-10">No se encontró el contenido del documento Word.</p>`;
+                }
+            }
+            // 3b. Los archivos .doc antiguos no se pueden reproducir fielmente en el navegador
+            else if (fileObj.fileName && fileObj.fileName.toLowerCase().endsWith('.doc')) {
+                container.innerHTML = `<div class="text-center text-slate-500 py-10"><p class="font-bold">Este archivo es Word antiguo (.doc).</p><p class="text-xs mt-1">Guárdalo como .docx para conservar el formato original al visualizarlo.</p></div>`;
+            }
+            // 4. Mostrar archivos de texto
+            else if (fileObj.rawData) {
+                const pre = document.createElement('pre');
+                pre.className = "doc-text-content";
+                try {
+                    pre.textContent = atob(fileObj.rawData.split(',')[1] || '');
+                } catch(e) {
+                    pre.textContent = fileObj.rawData;
+                }
+                container.appendChild(pre);
+            } else {
+                container.innerHTML = `<p class="text-slate-400 text-sm py-12">No hay un archivo cargado para esta vista.</p>`;
+            }
+        }
+
+        async function renderPDF(pdfDataUrl, container) {
+            try {
+                const loadingTask = pdfjsLib.getDocument(pdfDataUrl);
+                const pdf = await loadingTask.promise;
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const baseViewport = page.getViewport({ scale: 1 });
+                    const availableWidth = Math.max(container.clientWidth || 760, 320);
+                    const scale = 1.5;
+                    const viewport = page.getViewport({ scale });
+                    const canvas = document.createElement('canvas');
+                    canvas.style.maxWidth = '100%';
+                    canvas.style.height = 'auto';
+                    canvas.style.display = 'block';
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+                    container.appendChild(canvas);
+                }
+            } catch (e) {
+                container.innerHTML = `<p class="text-red-500 text-xs font-bold py-6">Error al renderizar el archivo PDF.</p>`;
+            }
+        }
+
+        function printSong() {
+            if (!currentSong) return;
+
+            const content = document.getElementById('printableSongContent');
+            if (!content) return;
+
+            // Imprime exactamente la versión que está visible: normal o con pisadas.
+            // Esperamos un instante para que Word/PDF termine de pintar antes de abrir el diálogo.
+            setTimeout(() => {
+                window.print();
+            }, 150);
+        }
+
+        function downloadOriginalFile() {
+            if (!currentSong) return;
+            const activeFile = (isAuthorized && (currentSong.pisadasPdfData || currentSong.pisadasPhoto || currentSong.pisadasRawData)) 
+                ? { data: currentSong.pisadasPdfData || currentSong.pisadasPhoto || currentSong.pisadasRawData, name: currentSong.pisadasFileName || `${currentSong.title}` }
+                : { data: currentSong.pdfData || currentSong.photo || currentSong.rawData, name: currentSong.fileName || `${currentSong.title}` };
+
+            if (!activeFile.data) return;
+            const a = document.createElement('a');
+            a.href = activeFile.data;
+            a.download = activeFile.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function exportToWord() {
+            if (!currentSong) return;
+            
+            const container = document.getElementById('printableSongContent');
+            const contentHtml = container ? container.innerHTML : '';
+            
+            const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
+                           "xmlns:w='urn:schemas-microsoft-com:office:word' " +
+                           "xmlns='http://www.w3.org/TR/REC-html40'>" +
+                           "<head><meta charset='utf-8'><title>" + currentSong.title + "</title></head><body>";
+            const footer = "</body></html>";
+            const sourceHTML = header + contentHtml + footer;
+            
+            const blob = new Blob(['\ufeff', sourceHTML], {
+                type: 'application/msword'
+            });
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentSong.title}.doc`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            toggleDownloadDropdown();
+        }
+
+        function exportToImage() {
+            const target = document.getElementById('printableSongContent');
+            if (!target) return;
+            html2canvas(target).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `${currentSong.title}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                toggleDownloadDropdown();
+            });
+        }
+
+        function processFile(input, target) {
+            const file = input.files[0];
+            if (!file) return;
+
+            document.getElementById('fileLoader').classList.remove('hidden');
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const result = e.target.result;
+                
+                // Si es un archivo .docx, procesamos ArrayBuffer
+                if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
+                    const arrayBufferReader = new FileReader();
+                    arrayBufferReader.onload = function(abEvent) {
+                        const fileObj = {
+                            pdfData: null,
+                            photo: null,
+                            rawData: result,
+                            arrayBuffer: abEvent.target.result,
+                            fileName: file.name,
+                            fileType: file.type
+                        };
+
+                        if (target === 'main') processedContent = fileObj;
+                        else if (target === 'pisadas') processedPisadasContent = fileObj;
+
+                        document.getElementById('fileLoader').classList.add('hidden');
+                    };
+                    arrayBufferReader.readAsArrayBuffer(file);
+                } else {
+                    const fileObj = {
+                        pdfData: file.type === 'application/pdf' ? result : null,
+                        photo: file.type.startsWith('image/') ? result : null,
+                        rawData: result,
+                        arrayBuffer: null,
+                        fileName: file.name,
+                        fileType: file.type
+                    };
+
+                    if (target === 'main') processedContent = fileObj;
+                    else if (target === 'pisadas') processedPisadasContent = fileObj;
+
+                    document.getElementById('fileLoader').classList.add('hidden');
+                }
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function saveSong(event) {
+            event.preventDefault();
+
+            const title = document.getElementById('newTitle').value.trim();
+            const momento = document.getElementById('newMomento').value;
+            const tiempo = document.getElementById('newTiempo').value;
+            const audioInput = document.getElementById('newAudio');
+            const mainFileInput = document.getElementById('newFile');
+            const pisadasFileInput = document.getElementById('newPisadasFile');
+            const loader = document.getElementById('fileLoader');
+
+            const editId = document.getElementById('editingSongId').value;
+
+            if (!title) {
+                alert('Escribe el nombre del canto antes de guardarlo.');
+                return;
+            }
+
+            // Si el usuario acaba de seleccionar un archivo, esperamos a que FileReader termine.
+            if (loader && !loader.classList.contains('hidden')) {
+                alert('Espera un momento: todavía se está procesando el archivo del canto.');
+                return;
+            }
+
+            if (!editId && mainFileInput && mainFileInput.files.length > 0 && !processedContent.fileName) {
+                alert('El archivo del canto todavía no terminó de cargarse. Vuelve a seleccionarlo y espera a que termine de procesarse.');
+                return;
+            }
+
+            function completeSave(audioData = null) {
+                if (editId) {
+                    const idx = songs.findIndex(s => s.id == editId);
+                    if (idx !== -1) {
+                        songs[idx] = {
+                            ...songs[idx],
+                            title, momento, tiempo,
+                            pdfData: processedContent.pdfData || songs[idx].pdfData,
+                            photo: processedContent.photo || songs[idx].photo,
+                            rawData: processedContent.rawData || songs[idx].rawData,
+                            fileName: processedContent.fileName || songs[idx].fileName,
+                            fileType: processedContent.fileType || songs[idx].fileType,
+                            pisadasPdfData: processedPisadasContent.pdfData || songs[idx].pisadasPdfData,
+                            pisadasPhoto: processedPisadasContent.photo || songs[idx].pisadasPhoto,
+                            pisadasRawData: processedPisadasContent.rawData || songs[idx].pisadasRawData,
+                            pisadasFileName: processedPisadasContent.fileName || songs[idx].pisadasFileName,
+                            pisadasFileType: processedPisadasContent.fileType || songs[idx].pisadasFileType,
+                            audioData: audioData || songs[idx].audioData
+                        };
+                        currentSong = songs[idx];
+                    }
+                } else {
+                    const newSong = {
+                        id: Date.now(),
+                        title, momento, tiempo,
+                        pdfData: processedContent.pdfData,
+                        photo: processedContent.photo,
+                        rawData: processedContent.rawData,
+                        fileName: processedContent.fileName,
+                        fileType: processedContent.fileType,
+                        pisadasPdfData: processedPisadasContent.pdfData,
+                        pisadasPhoto: processedPisadasContent.photo,
+                        pisadasRawData: processedPisadasContent.rawData,
+                        pisadasFileName: processedPisadasContent.fileName,
+                        pisadasFileType: processedPisadasContent.fileType,
+                        audioData
+                    };
+                    songs.push(newSong);
+                    currentSong = newSong;
+                }
+
+                // Guardamos el canto completo en IndexedDB. A diferencia de localStorage,
+                // permite almacenar archivos grandes sin el límite típico de unos pocos MB.
+                saveSongsToDB(songs).then(() => {
+                    try { localStorage.removeItem('misioneros_songs'); } catch (_) {}
+                    toggleAdminModal();
+                    filterSongs();
+                    renderSongViewer();
+                }).catch(storageError => {
+                    console.error('No se pudo guardar el canto:', storageError);
+                    alert('No se pudo guardar el archivo. El navegador puede no tener suficiente espacio disponible.');
+                });
+            }
+
+            if (audioInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => completeSave(e.target.result);
+                reader.readAsDataURL(audioInput.files[0]);
+            } else {
+                completeSave();
+            }
+        }
+
+        function renderWeeklySchemeUI() {
+            const container = document.getElementById('weeklySchemeContainer');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            liturgicalMoments.forEach(m => {
+                const div = document.createElement('div');
+                const selectedSongId = weeklyScheme[m.name] || "";
+                const isSelected = Boolean(selectedSongId);
+                const categorySongs = songs.filter(s => s.momento.toLowerCase() === m.name.toLowerCase());
+
+                let optionsHtml = `<option value="" class="text-slate-500 font-normal">-- Seleccionar ${m.name} --</option>`;
+                
+                if (categorySongs.length === 0) {
+                    optionsHtml = `<option value="" disabled class="text-slate-400 font-normal">Sin cantos de ${m.name}</option>`;
+                } else {
+                    categorySongs.forEach(s => {
+                        optionsHtml += `<option value="${s.id}" ${s.id == selectedSongId ? 'selected' : ''} class="text-slate-900 font-semibold">${s.title}</option>`;
+                    });
+                }
+
+                div.className = `p-3 rounded-xl border transition-all ${isSelected ? 'bg-cyan-50/70 border-cyan-400 shadow-sm' : 'bg-slate-50/80 border-slate-200 hover:border-slate-300'}`;
+
+                div.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2 text-sm font-extrabold ${isSelected ? 'text-cyan-900' : 'text-slate-800'}">
+                            <i data-lucide="${m.icon}" class="w-4 h-4 ${isSelected ? 'text-cyan-600' : 'text-slate-500'}"></i>
+                            <span class="text-sm">${m.name}</span>
+                        </div>
+                        ${selectedSongId ? `
+                            <button onclick="selectSong(${selectedSongId})" class="text-xs font-bold text-amber-700 hover:text-amber-800 bg-amber-100 border border-amber-300 px-2.5 py-1 rounded-md flex items-center gap-1 transition">
+                                <i data-lucide="eye" class="w-3.5 h-3.5"></i> Ver canto
+                            </button>
+                        ` : `
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Sin asignar</span>
+                        `}
+                    </div>
+                    <select onchange="updateScheme('${m.name}', this.value)" class="w-full bg-white text-slate-900 text-sm font-bold rounded-xl px-3 py-2 border ${isSelected ? 'border-cyan-400 focus:border-cyan-600' : 'border-slate-300 focus:border-cyan-500'} focus:outline-none transition shadow-sm">
+                        ${optionsHtml}
+                    </select>
+                `;
+                container.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        function updateScheme(momento, songId) {
+            if (songId) {
+                weeklyScheme[momento] = Number(songId);
+            } else {
+                delete weeklyScheme[momento];
+            }
+            localStorage.setItem('misioneros_scheme', JSON.stringify(weeklyScheme));
+            renderWeeklySchemeUI();
+        }
+
+        function clearScheme() {
+            if (confirm("¿Deseas reiniciar el esquema semanal?")) {
+                weeklyScheme = {};
+                localStorage.setItem('misioneros_scheme', JSON.stringify(weeklyScheme));
+                renderWeeklySchemeUI();
+            }
+        }
+    </script>
+</body>
+</html>
